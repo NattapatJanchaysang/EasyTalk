@@ -2,7 +2,7 @@
 
 แพลตฟอร์มปรึกษาแพทย์ด้วย AI สมัยใหม่ที่พัฒนาด้วย Next.js ให้บริการปรึกษาสุขภาพอัจฉริยะผ่านเอเจนต์แพทย์ AI เฉพาะทาง ผู้ใช้สามารถปรึกษาแพทย์ AI ต่างๆ ผ่านเสียงหรือข้อความ รับรายงานการแพทย์ และคำแนะนำด้านสุขภาพแบบเฉพาะบุคคล
 
-Live Demo: [medicalguroo.vercel.app](medicalguroo.vercel.app)
+Live Demo: [medicalguroo.vercel.app](https://medicalguroo.vercel.app)
 
 ## ✨ ฟีเจอร์หลัก
 
