@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button'
 import Vapi from '@vapi-ai/web';
 import { toast } from 'sonner'
 import { Main } from 'next/document'
+import { useUser } from '@clerk/nextjs'
+import Link from 'next/link'
 
 // --- Types ---
 type docterAgent = {
@@ -42,6 +44,7 @@ function Mainspace() {
   const [messages, setMessages] = useState<MessageItem[]>([])
   const [callDuration, setCallDuration] = useState(0);
   const [loading,setLoading] = useState(false)
+  const { user } = useUser();
   
   
   // Ref สำหรับเลื่อนหน้าจอแชท
@@ -190,7 +193,7 @@ const StartCall = () => {
               height={120}
               className='h-[100px] w-[100px] object-cover rounded-full border-4 border-white border-background shadow-md mx-auto' 
             />
-            <h2 className='text-sm text-muted-foreground mt-2'>Eztalk AI</h2>
+            <h2 className='text-sm text-muted-foreground mt-2'>EasyTalk AI</h2>
           </div>
 
           {/* Chat / Transcript Area */}
@@ -230,15 +233,35 @@ const StartCall = () => {
 
           {/* Controls */}
           <div className='mt-6 w-full flex justify-center'>
-            {!callStarted ? (
-              <Button className='w-full max-w-xs h-12 text-lg shadow-lg' onClick={StartCall} disabled={loading}>
-                {loading ? <Loader className='animate-spin'/> : <PhoneCall className='mr-2 w-5 h-5' />} Start Talking
-              </Button>
-            ) : (
-              <Button variant={'destructive'} className='w-full max-w-xs h-12 text-lg shadow-lg' onClick={endCall} disabled={loading}>
-                {loading ? <Loader className='aniamte-spin'/> :<PhoneOff className='mr-2 w-5 h-5' />} End Call
-              </Button>
-            )}
+{user ? (
+  !callStarted ? (
+    <Button 
+      className='w-full max-w-xs h-12 text-lg shadow-lg' 
+      onClick={StartCall} 
+      disabled={loading}
+    >
+      {loading ? <Loader className='animate-spin'/> : <PhoneCall className='mr-2 w-5 h-5' />} 
+      Start Talking
+    </Button>
+  ) : (
+    <Button 
+      variant={'destructive'} 
+      className='w-full max-w-xs h-12 text-lg shadow-lg' 
+      onClick={endCall} 
+      disabled={loading}
+    >
+      {loading ? <Loader className='animate-spin'/> : <PhoneOff className='mr-2 w-5 h-5' />} 
+      End Call
+    </Button>
+  )
+) : (
+  <Link href="/sign-in">
+    <Button className='w-full max-w-xs h-12 text-lg shadow-lg'>
+      <PhoneCall className='mr-2 w-5 h-5' />
+      Start Talking
+    </Button>
+  </Link>
+)}
           </div>
         </div>
       
