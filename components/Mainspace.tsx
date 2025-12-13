@@ -3,14 +3,23 @@ import axios from 'axios'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useEffect, useState, useRef } from 'react'
 // ตรวจสอบ path ให้ถูกต้องตามโครงสร้างโปรเจคของคุณ
-import { docterAgent } from '../../_components/DocterAgentCard' 
 import { Circle, Loader, PhoneCall, PhoneOff } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import Vapi from '@vapi-ai/web';
 import { toast } from 'sonner'
+import { Main } from 'next/document'
 
 // --- Types ---
+type docterAgent = {
+        id: number,
+        specialist: string,
+        description: string,
+        image: string,
+        agentPrompt: string,
+        voiceId?: string,
+        subscriptionRequired: boolean
+}
 export type SessionDetail = {
   id: number,
   notes: string,
@@ -25,9 +34,7 @@ type MessageItem = {
   text: string
 }
 
-function MedicalVoiceAgent() {
-  const { sessionId } = useParams()
-  const [sessionDetail, setSessionDetail] = useState<SessionDetail>()
+function Mainspace() {
   const [callStarted, setCallStarted] = useState(false);
   const [vapiInstance, setVapiInstance] = useState<any>(null);
   const [currentRole, setCurrentRole] = useState<string | null>(null) // แก้ currentRoll เป็น currentRole
@@ -35,7 +42,7 @@ function MedicalVoiceAgent() {
   const [messages, setMessages] = useState<MessageItem[]>([])
   const [callDuration, setCallDuration] = useState(0);
   const [loading,setLoading] = useState(false)
-  const router = useRouter()
+  
   
   // Ref สำหรับเลื่อนหน้าจอแชท
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -43,9 +50,7 @@ function MedicalVoiceAgent() {
   // --- Effects ---
 
   // 1. Fetch Session Data
-  useEffect(() => {
-    if (sessionId) GetSessionDetails()
-  }, [sessionId])
+
 
   // 2. Timer Logic
   useEffect(() => {
@@ -78,14 +83,6 @@ function MedicalVoiceAgent() {
 
   // --- Functions ---
 
-  const GetSessionDetails = async () => {
-    try {
-      const result = await axios.get('/api/session-chat?sessionId=' + sessionId)
-      setSessionDetail(result.data)
-    } catch (error) {
-      console.error("Error fetching session:", error)
-    }
-  }
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -94,44 +91,13 @@ function MedicalVoiceAgent() {
   };
 
 const StartCall = () => {
-  
-    // 1. เช็คก่อนว่ามีข้อมูล Voice ID ไหม
-    const voiceId = sessionDetail?.selectedDocter?.voiceId;
-
-    if (!voiceId) {
-      console.error("Voice ID is missing for this doctor:", sessionDetail?.selectedDocter);
-      alert("ไม่พบข้อมูล Voice ID ของแพทย์ กรุณาตรวจสอบข้อมูล");
-      return; 
-    }
-
+    setLoading(true)
+    
     const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_API_KEY!);
     setVapiInstance(vapi)
-
-    const VapiAgentConfig = {
-      name: 'AI Medical Doctor Voice Agent',
-      firstMessage: 'สวัสดี, รบกวนช่วยบอกข้อมูลชื่อ นามสกุล และ อายุ ของท่านให้ฉันรู้หน่อยได้ไหม',
-      transcriber: {
-        provider: 'google',
-        language: 'Thai' // หรือ 'th' ตามที่ google stt รองรับ
-      },
-      voice: {
-        provider: 'azure',
-        // 2. ส่งค่า voiceId ที่เราเช็คแล้วว่าเป็น string แน่นอน
-        voiceId: voiceId 
-      },
-      model: {
-        provider: 'google',
-        model: 'gemini-2.0-flash',
-        messages: [
-          {
-            role: 'system',
-            content: sessionDetail?.selectedDocter?.agentPrompt || "You are a helpful medical assistant." // ใส่ fallback กัน prompt ว่าง
-          }
-        ]
-      }
-    }
+    const VapiAgentConfig = '07bcc02c-673b-467a-b109-ba57da7e39a8';
     
-    // Debug ดู config ก่อนส่ง (กด F12 ดูใน Console)
+    
     console.log("Starting Vapi with Config:", VapiAgentConfig);
 
     try {
@@ -145,6 +111,7 @@ const StartCall = () => {
     vapi.on('call-start', () => {
       console.log('Call started')
       setCallStarted(true);
+      setLoading(false)
     });
 
     vapi.on('call-end', () => {
@@ -181,7 +148,7 @@ const StartCall = () => {
     
     // Error handling
     vapi.on('error', (e:any) => {
-        console.error("Vapi Runtime Error:", e); // ปรับ log ให้ชัดขึ้น
+        console.error("Vapi Error Details:", JSON.stringify(e, null, 2));
         setCallStarted(false);
     })
 
@@ -193,26 +160,14 @@ const StartCall = () => {
     if (!vapiInstance) return;
     vapiInstance.stop();
     setCallStarted(false);
-    const result = await GenerateReport()
+
 
     setLoading(false)
-    router.replace('/dashboard')
-    toast.success('รายงานสรุปผลของคุณถูกบันทึกแล้ว')
   };
 
-  const GenerateReport = async () => {
-    const result = await axios.post('/api/medical-report',{
-      messages:messages,
-      sessionDetail:sessionDetail,
-      sessionId:sessionId
-    })
-
-    console.log(result.data);
-    return result.data;
-  }
 
   return (
-    <div className='p-4 border rounded-3xl bg-secondary h-full min-h-[500px] flex flex-col'>
+    <div className='p-4 border rounded-3xl h-full min-h-[500px] flex flex-col'>
       {/* Header */}
       <div className='flex justify-between items-center p-3 rounded-xl'>
         <div className='flex gap-2 items-center'>
@@ -224,25 +179,24 @@ const StartCall = () => {
         <h2 className='text-xl font-mono font-bold text-primary'>{formatTime(callDuration)}</h2>
       </div>
 
-      {sessionDetail && (
+      
         <div className='flex flex-col items-center mt-6 flex-grow'>
           {/* Doctor Profile */}
           <div className='text-center mb-6'>
             <Image 
-              src={sessionDetail?.selectedDocter?.image || '/placeholder-doctor.png'} 
-              alt={sessionDetail?.selectedDocter.specialist ?? 'Doctor'}
+              src='/girl.jpg'
+              alt='Avatar'
               width={120}
               height={120}
-              className='h-[100px] w-[100px] object-cover rounded-full border-4 border-background shadow-md mx-auto' 
+              className='h-[100px] w-[100px] object-cover rounded-full border-4 border-white border-background shadow-md mx-auto' 
             />
-            <h2 className='mt-3 text-lg font-bold'>{sessionDetail?.selectedDocter?.specialist}</h2>
-            <p className='text-sm text-muted-foreground'>AI Medical Voice Agent</p>
+            <h2 className='text-sm text-muted-foreground mt-2'>Eztalk AI</h2>
           </div>
 
           {/* Chat / Transcript Area */}
           <div className='w-full max-h-[350px] overflow-y-auto p-4 bg-background rounded-xl border shadow-inner flex flex-col gap-3'>
             {messages.length === 0 && !liveTranscript && (
-                 <p className='text-center text-muted-foreground text-sm italic py-10'>Start the call to begin consultation...</p>
+                 <p className='text-center text-muted-foreground text-sm italic py-10'>Start the call to begin talking...</p>
             )}
 
             {messages.map((msg, index) => (
@@ -278,7 +232,7 @@ const StartCall = () => {
           <div className='mt-6 w-full flex justify-center'>
             {!callStarted ? (
               <Button className='w-full max-w-xs h-12 text-lg shadow-lg' onClick={StartCall} disabled={loading}>
-                {loading ? <Loader className='animate-spin'/> : <PhoneCall className='mr-2 w-5 h-5' />} Start Consultation
+                {loading ? <Loader className='animate-spin'/> : <PhoneCall className='mr-2 w-5 h-5' />} Start Talking
               </Button>
             ) : (
               <Button variant={'destructive'} className='w-full max-w-xs h-12 text-lg shadow-lg' onClick={endCall} disabled={loading}>
@@ -287,9 +241,9 @@ const StartCall = () => {
             )}
           </div>
         </div>
-      )}
+      
     </div>
   )
 }
 
-export default MedicalVoiceAgent
+export default Mainspace;
