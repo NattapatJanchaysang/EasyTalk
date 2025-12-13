@@ -1,5 +1,7 @@
-EasyTalk (MedicalGuroo)
+EasyTalk
 =======================
+
+Live Demo: [easytalk-nine.vercel.app](https://easytalk-nine.vercel.app)
 
 AI ติวเตอร์ภาษาอังกฤษที่ผสานการคุยเสียงแบบเรียลไทม์กับระบบผู้ช่วยอัจฉริยะ พัฒนาโดย Next.js App Router พร้อมระบบยืนยันตัวตนด้วย Clerk, จัดการผู้ใช้และเครดิตด้วย Drizzle + Neon และมี UI ที่ออกแบบให้ใช้งานง่ายสำหรับการฝึกพูดภาษาอังกฤษ
 
