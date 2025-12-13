@@ -1,7 +1,7 @@
 "use client";
 
 
-import React from 'react'
+import React, { useEffect } from 'react'
 import { motion } from "motion/react";
 
 import { UserButton, useUser } from "@clerk/nextjs";
@@ -15,6 +15,9 @@ import { Mic } from 'lucide-react';
 
 
 export default function Hero() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   return (
     <BackgroundLines>
     <div className="relative grid grid-cols-1 md:grid-cols-2 items-center justify-center h-screen px-24 lg:px-40 mx-auto">
