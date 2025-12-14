@@ -24,8 +24,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MedicalGuroo",
-  description: "แพทย์ AI อัจฉริยะ",
+  title: "EasyTalk",
+  description: "Ai สาวสวยช่วยฝึกพูดภาษาอังกฤษ",
 };
 
 export default function RootLayout({
